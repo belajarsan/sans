@@ -5,78 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cyber Stickman - Mobile & Desktop Version</title>
     <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
         body {
             background-color: #05050a;
             color: #fff;
             font-family: 'Courier New', Courier, monospace;
             text-align: center;
             margin: 0;
-            padding: 5px;
+            padding: 10px;
             touch-action: manipulation;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
         }
         h2 {
             margin: 5px 0 2px 0;
-            font-size: 16px;
+            font-size: 18px;
             color: #00ffcc;
             text-shadow: 0 0 10px rgba(0, 255, 204, 0.7);
             letter-spacing: 1px;
         }
         .author {
-            font-size: 11px;
+            font-size: 12px;
             color: #38bdf8;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+        }
+        .controls-info {
+            font-size: 11px;
+            color: #a5b4fc;
+            margin-bottom: 8px;
+        }
+        kbd {
+            background: #1e293b;
+            border: 1px solid #38bdf8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #38bdf8;
+            font-weight: bold;
         }
         canvas {
             background: linear-gradient(to bottom, #090a16 0%, #1a1c38 100%);
             display: block;
-            margin: 5px auto;
             border-radius: 12px;
             border: 3px solid #00ffcc;
             box-shadow: 0 0 25px rgba(0, 255, 204, 0.4);
             max-width: 100%;
             height: auto;
         }
-        .controls-info {
-            font-size: 11px;
-            color: #a5b4fc;
-            margin-bottom: 5px;
-        }
-        kbd {
-            background: #1e293b;
-            border: 1px solid #38bdf8;
-            padding: 2px 5px;
-            border-radius: 4px;
-            color: #38bdf8;
-            font-weight: bold;
-        }
-        /* Style Tombol Layar Sentuh HP */
+        /* Panel Tombol HP */
         .mobile-controls {
             display: flex;
             justify-content: space-between;
+            width: 100%;
             max-width: 800px;
-            margin: 10px auto;
-            padding: 0 10px;
+            margin-top: 12px;
+            padding: 0 5px;
         }
         .btn-group {
             display: flex;
-            gap: 8px;
+            gap: 10px;
         }
         .game-btn {
-            background: rgba(30, 41, 59, 0.8);
+            background: rgba(30, 41, 59, 0.85);
             border: 2px solid #00ffcc;
             color: #00ffcc;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
-            padding: 15px 20px;
-            border-radius: 10px;
+            padding: 14px 18px;
+            border-radius: 12px;
             outline: none;
-            user-select: none;
-            -webkit-user-select: none;
             box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+            cursor: pointer;
+            transition: background 0.1s, transform 0.1s;
         }
         .game-btn:active {
             background: #00ffcc;
             color: #05050a;
+            transform: scale(0.95);
         }
         .action-btn {
             border-color: #38bdf8;
@@ -98,11 +109,11 @@
 
     <canvas id="gameCanvas" width="800" height="400"></canvas>
 
-    <!-- Tombol Kontrol Khusus HP -->
+    <!-- Tombol Kontrol Layar Sentuh HP -->
     <div class="mobile-controls">
         <div class="btn-group">
-            <button class="game-btn" id="leftBtn">◀</button>
-            <button class="game-btn" id="rightBtn">▶</button>
+            <button class="game-btn" id="leftBtn">◀ KIRI</button>
+            <button class="game-btn" id="rightBtn">KANAN ▶</button>
         </div>
         <div class="btn-group">
             <button class="game-btn action-btn" id="dashBtn">💨 DASH</button>
@@ -127,7 +138,7 @@
         let playerAttacking = false;
         let playerAttackCooldown = 0;
 
-        let playerFacing = 1; // 1 = kanan, -1 = kiri
+        let playerFacing = 1; 
         let isDashing = false;
         let dashCooldown = 0;
         let dashTimer = 0;
@@ -141,7 +152,7 @@
 
         const keys = { right: false, left: false, shift: false };
 
-        // Event Listener Keyboard Desktop
+        // Keyboard Listener (PC)
         window.addEventListener("keydown", (e) => {
             if (e.code === "ArrowRight") { keys.right = true; playerFacing = 1; }
             if (e.code === "ArrowLeft") { keys.left = true; playerFacing = -1; }
@@ -165,12 +176,12 @@
             if (e.code === "ShiftLeft" || e.code === "ShiftRight") { keys.shift = false; }
         });
 
-        // Event Listener Touchscreen HP
+        // Touchscreen & Mouse Listener (HP / Mouse Click)
         const bindTouchButton = (id, actionDown, actionUp) => {
             const btn = document.getElementById(id);
             if (!btn) return;
-            btn.addEventListener("touchstart", (e) => { e.preventDefault(); actionDown(); });
-            btn.addEventListener("touchend", (e) => { e.preventDefault(); if(actionUp) actionUp(); });
+            btn.addEventListener("touchstart", (e) => { e.preventDefault(); actionDown(); }, {passive: false});
+            btn.addEventListener("touchend", (e) => { e.preventDefault(); if(actionUp) actionUp(); }, {passive: false});
             btn.addEventListener("mousedown", (e) => { e.preventDefault(); actionDown(); });
             btn.addEventListener("mouseup", (e) => { e.preventDefault(); if(actionUp) actionUp(); });
         };
@@ -605,7 +616,7 @@
                 ctx.shadowBlur = 0;
             }
 
-            // Render Boss Stickman
+            // Boss Render
             ctx.strokeStyle = "#ef4444";
             ctx.lineWidth = 3.5;
             ctx.lineCap = "round";
@@ -671,7 +682,7 @@
                 }
             });
 
-            // Render Player Stickman
+            // Player Render
             ctx.strokeStyle = isDashing ? "#00ffcc" : "#ffffff";
             ctx.lineWidth = 3.5;
             ctx.lineCap = "round";
@@ -722,6 +733,7 @@
             ctx.shadowBlur = 0;
             ctx.restore();
 
+            // HUD UI Scoreboard
             ctx.fillStyle = "rgba(17, 24, 39, 0.9)";
             ctx.fillRect(15, 15, 430, 42);
             ctx.strokeStyle = "#00ffcc";
