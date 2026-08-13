@@ -2,8 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Stickman Runner - Mobile Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Stickman - Desktop Version</title>
     <style>
         body {
             background-color: #05050a;
@@ -12,7 +12,6 @@
             text-align: center;
             margin: 0;
             padding: 10px;
-            touch-action: manipulation;
         }
         h2 {
             margin-bottom: 2px;
@@ -24,8 +23,7 @@
         .author {
             font-size: 12px;
             color: #38bdf8;
-            margin-bottom: 10px;
-            text-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+            margin-bottom: 8px;
         }
         canvas {
             background: linear-gradient(to bottom, #090a16 0%, #1a1c38 100%);
@@ -34,78 +32,31 @@
             border-radius: 12px;
             border: 3px solid #00ffcc;
             box-shadow: 0 0 25px rgba(0, 255, 204, 0.4);
-            max-width: 100%;
-            height: auto;
         }
         .controls-info {
-            font-size: 11px;
+            font-size: 12px;
             color: #a5b4fc;
             margin-bottom: 10px;
         }
-        /* Tombol Kontrol Layar HP */
-        .touch-controls {
-            display: flex;
-            justify-content: space-between;
-            max-width: 800px;
-            margin: 15px auto 0 auto;
-            padding: 0 20px;
-        }
-        .btn-group {
-            display: flex;
-            gap: 15px;
-        }
-        .game-btn {
-            background: rgba(17, 24, 39, 0.8);
-            border: 2px solid #00ffcc;
-            color: #00ffcc;
-            font-size: 20px;
+        kbd {
+            background: #1e293b;
+            border: 1px solid #38bdf8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #38bdf8;
             font-weight: bold;
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
-            cursor: pointer;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        .game-btn:active {
-            background: #00ffcc;
-            color: #05050a;
-            box-shadow: 0 0 20px #00ffcc;
-        }
-        .jump-btn {
-            border-color: #facc15;
-            color: #facc15;
-            box-shadow: 0 0 15px rgba(250, 204, 21, 0.3);
-        }
-        .jump-btn:active {
-            background: #facc15;
-            color: #05050a;
-            box-shadow: 0 0 20px #facc15;
         }
     </style>
 </head>
 <body>
 
-    <h2>⚡ CYBER STICKMAN RUNNER ⚡</h2>
-    <div class="author">By: Sans</div>
-    <div class="controls-info">Gunakan Tombol di Bawah (HP) atau Keyboard (PC)!</div>
+    <h2>⚡ CYBER STICKMAN: DESKTOP DUEL (AGILE EDITION) ⚡</h2>
+    <div class="author">By: Sans & Enhanced</div>
+    <div class="controls-info">
+        Kontrol: <kbd>◀</kbd> <kbd>▶</kbd> Jalan | <kbd>▲</kbd> Lompat | <kbd>SHIFT</kbd> Dash 💨 | <kbd>SPACE</kbd> Tebas Pedang ⚔️
+    </div>
 
     <canvas id="gameCanvas" width="800" height="400"></canvas>
-
-    <!-- Tombol Kontrol Virtual untuk HP -->
-    <div class="touch-controls">
-        <div class="btn-group">
-            <div class="game-btn" id="leftBtn">◀</div>
-            <div class="game-btn" id="rightBtn">▶</div>
-        </div>
-        <div class="btn-group">
-            <div class="game-btn jump-btn" id="jumpBtn">▲</div>
-        </div>
-    </div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
@@ -114,16 +65,46 @@
         let score = 0;
         let coins = 0;
         let lives = 3;
+        let bossLives = 5;
         let gameOver = false;
         let gameWin = false;
+        let hasSword = false;
+        let bossFightActive = false;
+        
+        let playerAttacking = false;
+        let playerAttackCooldown = 0;
 
-        const keys = { right: false, left: false };
+        // Variabel Kelincahan Baru untuk Player
+        let playerFacing = 1; // 1 = kanan, -1 = kiri
+        let isDashing = false;
+        let dashCooldown = 0;
+        let dashTimer = 0;
+        
+        let bossState = 'hunt';
+        let bossTimer = 0;
+        let bossVy = 0;
+        let bossIsJumping = false;
+        let bossAttacking = false;
+        let bossDirection = -1;
+
+        const keys = { right: false, left: false, shift: false };
 
         window.addEventListener("keydown", (e) => {
-            if (e.code === "ArrowRight") keys.right = true;
-            if (e.code === "ArrowLeft") keys.left = true;
+            if (e.code === "ArrowRight") { keys.right = true; playerFacing = 1; }
+            if (e.code === "ArrowLeft") { keys.left = true; playerFacing = -1; }
+            if (e.code === "ShiftLeft" || e.code === "ShiftRight") { keys.shift = true; }
+            
             if (e.code === "ArrowUp" || e.code === "Space") {
-                triggerJumpOrRestart();
+                if (gameOver || gameWin) {
+                    resetFullGame();
+                } else if (e.code === "ArrowUp") {
+                    if (!mario.isJumping) {
+                        mario.vy = mario.jumpPower;
+                        mario.isJumping = true;
+                    }
+                } else if (e.code === "Space") {
+                    triggerAttack();
+                }
                 e.preventDefault();
             }
         });
@@ -131,46 +112,49 @@
         window.addEventListener("keyup", (e) => {
             if (e.code === "ArrowRight") keys.right = false;
             if (e.code === "ArrowLeft") keys.left = false;
+            if (e.code === "ShiftLeft" || e.code === "ShiftRight") { keys.shift = false; }
         });
 
-        const leftBtn = document.getElementById("leftBtn");
-        const rightBtn = document.getElementById("rightBtn");
-        const jumpBtn = document.getElementById("jumpBtn");
+        function triggerAttack() {
+            if (!hasSword || !bossFightActive || playerAttackCooldown > 0) return;
+            playerAttacking = true;
+            playerAttackCooldown = 12; // Cooldown lebih cepat agar lincah
 
-        leftBtn.addEventListener("touchstart", (e) => { keys.left = true; e.preventDefault(); });
-        leftBtn.addEventListener("touchend", (e) => { keys.left = false; e.preventDefault(); });
-        leftBtn.addEventListener("mousedown", () => { keys.left = true; });
-        leftBtn.addEventListener("mouseup", () => { keys.left = false; });
-
-        rightBtn.addEventListener("touchstart", (e) => { keys.right = true; e.preventDefault(); });
-        rightBtn.addEventListener("touchend", (e) => { keys.right = false; e.preventDefault(); });
-        rightBtn.addEventListener("mousedown", () => { keys.right = true; });
-        rightBtn.addEventListener("mouseup", () => { keys.right = false; });
-
-        jumpBtn.addEventListener("touchstart", (e) => { triggerJumpOrRestart(); e.preventDefault(); });
-        jumpBtn.addEventListener("mousedown", () => { triggerJumpOrRestart(); });
-
-        function triggerJumpOrRestart() {
-            if (gameOver || gameWin) {
-                resetFullGame();
-                return;
+            let dist = Math.abs((mario.x + mario.width / 2) - (boss.x + boss.width / 2));
+            if (dist < 90 && mario.y + mario.height >= boss.y - 25) {
+                bossLives--;
+                boss.x += (mario.x < boss.x) ? 50 : -50;
+                bossVy = -7;
+                if (bossLives <= 0) {
+                    gameWin = true;
+                }
             }
-            if (!mario.isJumping) {
-                mario.vy = mario.jumpPower;
-                mario.isJumping = true;
-            }
+
+            setTimeout(() => {
+                playerAttacking = false;
+            }, 120);
         }
 
         const mario = {
-            x: 50,
-            y: 250,
-            width: 28,
-            height: 48,
-            speed: 5,
+            x: 100,
+            y: 200,
+            width: 30,
+            height: 50,
+            speed: 6.0,          // Sedikit ditambah agar responsif
+            dashSpeed: 14.0,     // Kecepatan kilat saat dash
             vy: 0,
-            gravity: 0.6,
-            jumpPower: -12.5,
+            gravity: 0.58,       // Gravitasi disesuaikan agar kontrol udara lebih enak
+            jumpPower: -13.0,    // Lompatan sedikit lebih tinggi
             isJumping: false,
+            animFrame: 0
+        };
+
+        const boss = {
+            x: 4200,
+            y: 230,
+            width: 30,
+            height: 50,
+            speed: 3.2,
             animFrame: 0
         };
 
@@ -196,7 +180,8 @@
             { x: 3280, y: 210, width: 70, height: 110, type: 'pipe' },
             { x: 3500, y: 170, width: 140, height: 20, type: 'block' },
             { x: 3800, y: 140, width: 100, height: 20, type: 'block' },
-            { x: 4100, y: 180, width: 120, height: 20, type: 'block' }
+            { x: 4100, y: 180, width: 120, height: 20, type: 'block' },
+            { x: 4350, y: 220, width: 600, height: 90, type: 'block' }
         ];
 
         const spikes = [
@@ -205,8 +190,7 @@
             { x: 1820, y: 290, width: 60, height: 20 },
             { x: 2450, y: 290, width: 50, height: 20 },
             { x: 2950, y: 290, width: 55, height: 20 },
-            { x: 3680, y: 290, width: 70, height: 20 },
-            { x: 4300, y: 290, width: 90, height: 20 }
+            { x: 3680, y: 290, width: 70, height: 20 }
         ];
 
         let coinList = [
@@ -217,9 +201,10 @@
             { x: 1530, y: 80, collected: false },  { x: 1930, y: 120, collected: false },
             { x: 2350, y: 100, collected: false }, { x: 2830, y: 120, collected: false },
             { x: 3080, y: 80, collected: false },  { x: 3530, y: 120, collected: false },
-            { x: 3830, y: 90, collected: false },  { x: 4130, y: 130, collected: false },
-            { x: 4500, y: 150, collected: false }, { x: 4540, y: 150, collected: false }
+            { x: 3830, y: 90, collected: false },  { x: 4130, y: 130, collected: false }
         ];
+
+        const swordItem = { x: 4000, y: 250, width: 25, height: 20, collected: false };
 
         let enemies = [
             { x: 500, y: 280, width: 32, height: 32, speed: 1.6, direction: 1, minX: 420, maxX: 650, alive: true },
@@ -228,17 +213,15 @@
             { x: 2200, y: 280, width: 32, height: 32, speed: 2.2, direction: -1, minX: 2000, maxX: 2300, alive: true },
             { x: 2700, y: 280, width: 32, height: 32, speed: 2.1, direction: 1, minX: 2550, maxX: 2850, alive: true },
             { x: 3400, y: 280, width: 32, height: 32, speed: 2.4, direction: -1, minX: 3250, maxX: 3550, alive: true },
-            { x: 3950, y: 280, width: 32, height: 32, speed: 2.5, direction: 1, minX: 3800, maxX: 4100, alive: true },
-            { x: 4600, y: 280, width: 32, height: 32, speed: 2.6, direction: -1, minX: 4400, maxX: 4750, alive: true }
+            { x: 3950, y: 280, width: 32, height: 32, speed: 2.5, direction: 1, minX: 3800, maxX: 4100, alive: true }
         ];
 
-        const flag = { x: 4850, y: 90, width: 18, height: 230 };
-
         function resetPosition() {
-            mario.x = 50;
-            mario.y = 250;
+            mario.x = 100;
+            mario.y = 200;
             mario.vy = 0;
             mario.isJumping = false;
+            isDashing = false;
             cameraX = 0;
         }
 
@@ -246,23 +229,57 @@
             score = 0;
             coins = 0;
             lives = 3;
+            bossLives = 5;
             gameOver = false;
             gameWin = false;
+            hasSword = false;
+            bossFightActive = false;
+            playerAttacking = false;
+            playerAttackCooldown = 0;
+            isDashing = false;
+            dashCooldown = 0;
+            bossState = 'hunt';
+            bossTimer = 0;
+            bossVy = 0;
+            bossIsJumping = false;
+            bossAttacking = false;
             resetPosition();
             coinList.forEach(c => c.collected = false);
+            swordItem.collected = false;
             enemies.forEach(e => e.alive = true);
+            boss.x = 4400;
+            boss.y = 230;
         }
 
         function update() {
             if (gameOver || gameWin) return;
 
+            if (playerAttackCooldown > 0) playerAttackCooldown--;
+            if (dashCooldown > 0) dashCooldown--;
+
+            // Sistem Dash (Kelincahan Player)
+            if (keys.shift && dashCooldown === 0 && !isDashing) {
+                isDashing = true;
+                dashTimer = 12; // Durasi dash singkat
+                dashCooldown = 45; // Cooldown dash agar tidak spamming berlebihan
+            }
+
+            let currentSpeed = mario.speed;
+            if (isDashing) {
+                currentSpeed = mario.dashSpeed;
+                dashTimer--;
+                if (dashTimer <= 0) {
+                    isDashing = false;
+                }
+            }
+
             if (keys.right) {
-                mario.x += mario.speed;
-                mario.animFrame += 0.2;
+                mario.x += currentSpeed;
+                mario.animFrame += isDashing ? 0.6 : 0.3;
             }
             if (keys.left) {
-                mario.x -= mario.speed;
-                mario.animFrame += 0.2;
+                mario.x -= currentSpeed;
+                mario.animFrame += isDashing ? 0.6 : 0.3;
                 if (mario.x < 0) mario.x = 0;
             }
 
@@ -321,6 +338,79 @@
                 }
             });
 
+            if (!swordItem.collected &&
+                mario.x < swordItem.x + swordItem.width &&
+                mario.x + mario.width > swordItem.x &&
+                mario.y < swordItem.y + swordItem.height &&
+                mario.y + mario.height > swordItem.y
+            ) {
+                swordItem.collected = true;
+                hasSword = true;
+                bossFightActive = true;
+                score += 500;
+            }
+
+            if (bossFightActive) {
+                boss.animFrame += 0.3;
+                bossTimer++;
+
+                let distToPlayer = (mario.x + mario.width / 2) - (boss.x + boss.width / 2);
+                bossDirection = distToPlayer > 0 ? 1 : -1;
+
+                if (bossTimer > 90) {
+                    let rand = Math.random();
+                    if (rand < 0.5) bossState = 'hunt';
+                    else if (rand < 0.8) {
+                        bossState = 'jumpAttack';
+                        if (!bossIsJumping) {
+                            bossVy = -13;
+                            bossIsJumping = true;
+                        }
+                    } else {
+                        bossState = 'dash';
+                    }
+                    bossTimer = 0;
+                }
+
+                if (bossState === 'hunt') {
+                    boss.x += bossDirection * boss.speed * 1.3;
+                    if (Math.abs(distToPlayer) < 60 && Math.random() < 0.1) {
+                        bossAttacking = true;
+                        setTimeout(() => { bossAttacking = false; }, 180);
+                    }
+                } else if (bossState === 'jumpAttack') {
+                    boss.x += bossDirection * boss.speed * 1.6;
+                } else if (bossState === 'dash') {
+                    boss.x += bossDirection * boss.speed * 2.2;
+                    bossAttacking = true;
+                    setTimeout(() => { bossAttacking = false; }, 250);
+                }
+
+                bossVy += mario.gravity;
+                boss.y += bossVy;
+                if (boss.y >= 230) {
+                    boss.y = 230;
+                    bossVy = 0;
+                    bossIsJumping = false;
+                }
+
+                if (boss.x < 0) boss.x = 0;
+                if (boss.x > worldWidth - boss.width) boss.x = worldWidth - boss.width;
+
+                if (
+                    mario.x < boss.x + boss.width &&
+                    mario.x + mario.width > boss.x &&
+                    mario.y < boss.y + boss.height &&
+                    mario.y + mario.height > boss.y
+                ) {
+                    lives--;
+                    mario.x += (mario.x < boss.x) ? -45 : 45;
+                    if (lives <= 0) {
+                        gameOver = true;
+                    }
+                }
+            }
+
             enemies.forEach(enemy => {
                 if (!enemy.alive) return;
                 enemy.x += enemy.speed * enemy.direction;
@@ -336,7 +426,7 @@
                 ) {
                     if (mario.vy > 0 && mario.y + mario.height - mario.vy <= enemy.y + 12) {
                         enemy.alive = false;
-                        mario.vy = -9;
+                        mario.vy = -10; // Dorongan pantulan musuh lebih tinggi
                         score += 150;
                     } else {
                         lives--;
@@ -348,15 +438,6 @@
                     }
                 }
             });
-
-            if (
-                mario.x < flag.x + flag.width &&
-                mario.x + mario.width > flag.x &&
-                mario.y < flag.y + flag.height &&
-                mario.y + mario.height > flag.y
-            ) {
-                gameWin = true;
-            }
         }
 
         function draw() {
@@ -436,6 +517,72 @@
                 }
             });
 
+            if (!swordItem.collected) {
+                ctx.strokeStyle = "#38bdf8";
+                ctx.lineWidth = 3;
+                ctx.shadowColor = "#38bdf8";
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.moveTo(swordItem.x + 5, swordItem.y + 15);
+                ctx.lineTo(swordItem.x + 20, swordItem.y);
+                ctx.moveTo(swordItem.x + 2, swordItem.y + 12);
+                ctx.lineTo(swordItem.x + 8, swordItem.y + 18);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+
+            // Render Boss Stickman
+            ctx.strokeStyle = "#ef4444";
+            ctx.lineWidth = 3.5;
+            ctx.lineCap = "round";
+            ctx.shadowColor = "#ef4444";
+            ctx.shadowBlur = 15;
+
+            ctx.beginPath();
+            ctx.arc(boss.x + 15, boss.y + 10, 8, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(boss.x + 15, boss.y + 18);
+            ctx.lineTo(boss.x + 15 + (bossDirection * 3), boss.y + 35);
+            ctx.stroke();
+
+            let bossSwing = Math.sin(boss.animFrame) * 12;
+
+            ctx.beginPath();
+            ctx.moveTo(boss.x + 15, boss.y + 22);
+            ctx.lineTo(boss.x + 15 - (bossDirection * 15), boss.y + 30);
+            ctx.moveTo(boss.x + 15, boss.y + 22);
+            ctx.lineTo(boss.x + 15 + (bossDirection * 20), boss.y + 25);
+            ctx.stroke();
+
+            ctx.strokeStyle = "#ff0055";
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            if (bossAttacking) {
+                ctx.moveTo(boss.x + 15, boss.y + 25);
+                ctx.lineTo(boss.x + 15 + (bossDirection * 40), boss.y + 25);
+            } else {
+                ctx.moveTo(boss.x + 15 + (bossDirection * 15), boss.y + 25);
+                ctx.lineTo(boss.x + 15 + (bossDirection * 32), boss.y + 12);
+            }
+            ctx.stroke();
+
+            ctx.strokeStyle = "#ef4444";
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.moveTo(boss.x + 15, boss.y + 35);
+            ctx.lineTo(boss.x + 8 - bossSwing, boss.y + 50);
+            ctx.moveTo(boss.x + 15, boss.y + 35);
+            ctx.lineTo(boss.x + 22 + bossSwing, boss.y + 50);
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = "#ef4444";
+            ctx.font = "bold 12px 'Courier New'";
+            ctx.fillText("BOSS HP: " + "❤️ ".repeat(bossLives), boss.x - 30, boss.y - 12);
+
             enemies.forEach(enemy => {
                 if (enemy.alive) {
                     ctx.fillStyle = "#dc2626";
@@ -450,68 +597,70 @@
                 }
             });
 
-            ctx.fillStyle = "#fff";
-            ctx.shadowColor = "#fff";
-            ctx.shadowBlur = 10;
-            ctx.fillRect(flag.x, flag.y, flag.width, flag.height);
-            
-            ctx.fillStyle = "#00ffcc";
-            ctx.shadowColor = "#00ffcc";
-            ctx.beginPath();
-            ctx.moveTo(flag.x - 35, flag.y);
-            ctx.lineTo(flag.x, flag.y + 18);
-            ctx.lineTo(flag.x - 35, flag.y + 36);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            const cx = mario.x + mario.width / 2;
-            const cy = mario.y;
-
-            ctx.strokeStyle = "#ffffff";
+            // Render Player Stickman (Efek Glow Cyan jika sedang Dash)
+            ctx.strokeStyle = isDashing ? "#00ffcc" : "#ffffff";
             ctx.lineWidth = 3.5;
             ctx.lineCap = "round";
-            ctx.shadowColor = "#ffffff";
-            ctx.shadowBlur = 12;
+            ctx.shadowColor = isDashing ? "#00ffcc" : "#ffffff";
+            ctx.shadowBlur = isDashing ? 20 : 12;
 
             ctx.beginPath();
-            ctx.arc(cx, cy + 8, 8, 0, Math.PI * 2);
+            ctx.arc(mario.x + 15, mario.y + 10, 8, 0, Math.PI * 2);
             ctx.stroke();
 
             ctx.beginPath();
-            ctx.moveTo(cx, cy + 16);
-            ctx.lineTo(cx, cy + 32);
+            ctx.moveTo(mario.x + 15, mario.y + 18);
+            ctx.lineTo(mario.x + 15 + (playerFacing * 3), mario.y + 35);
             ctx.stroke();
 
-            let swing = Math.sin(mario.animFrame) * 8;
+            let swing = Math.sin(mario.animFrame) * 10;
 
             ctx.beginPath();
-            ctx.moveTo(cx, cy + 20);
-            ctx.lineTo(cx - 10 + swing, cy + 28);
-            ctx.moveTo(cx, cy + 20);
-            ctx.lineTo(cx + 10 - swing, cy + 28);
+            ctx.moveTo(mario.x + 15, mario.y + 22);
+            ctx.lineTo(mario.x + 5 + swing, mario.y + 30);
+            ctx.moveTo(mario.x + 15, mario.y + 22);
+            ctx.lineTo(mario.x + 25 - swing, mario.y + 30);
             ctx.stroke();
 
+            if (hasSword) {
+                ctx.strokeStyle = "#38bdf8";
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                if (playerAttacking) {
+                    ctx.moveTo(mario.x + 15, mario.y + 25);
+                    ctx.lineTo(mario.x + (playerFacing === 1 ? 45 : -15), mario.y + 25);
+                } else {
+                    ctx.moveTo(mario.x + 20, mario.y + 28);
+                    ctx.lineTo(mario.x + (playerFacing === 1 ? 35 : -5), mario.y + 15);
+                }
+                ctx.stroke();
+                ctx.strokeStyle = isDashing ? "#00ffcc" : "#ffffff";
+                ctx.lineWidth = 3.5;
+            }
+
             ctx.beginPath();
-            ctx.moveTo(cx, cy + 32);
-            ctx.lineTo(cx - 10 - swing, cy + 48);
-            ctx.moveTo(cx, cy + 32);
-            ctx.lineTo(cx + 10 + swing, cy + 48);
+            ctx.moveTo(mario.x + 15, mario.y + 35);
+            ctx.lineTo(mario.x + 6 - swing, mario.y + 50);
+            ctx.moveTo(mario.x + 15, mario.y + 35);
+            ctx.lineTo(mario.x + 24 + swing, mario.y + 50);
             ctx.stroke();
 
             ctx.shadowBlur = 0;
             ctx.restore();
 
             ctx.fillStyle = "rgba(17, 24, 39, 0.9)";
-            ctx.fillRect(15, 15, 380, 42);
+            ctx.fillRect(15, 15, 430, 42);
             ctx.strokeStyle = "#00ffcc";
             ctx.lineWidth = 1.5;
-            ctx.strokeRect(15, 15, 380, 42);
+            ctx.strokeRect(15, 15, 430, 42);
 
             ctx.fillStyle = "#ffffff";
             ctx.font = "bold 13px 'Courier New'";
             ctx.fillText("SCORE: " + score, 25, 41);
-            ctx.fillText("COINS: " + coins, 150, 41);
-            ctx.fillText("LIVES: " + "❤️ ".repeat(lives), 260, 41);
+            ctx.fillText("COINS: " + coins, 135, 41);
+            ctx.fillText("LIVES: " + "❤️ ".repeat(lives), 235, 41);
+            ctx.fillStyle = dashCooldown === 0 ? "#00ffcc" : "#94a3b8";
+            ctx.fillText(dashCooldown === 0 ? "DASH [READY]" : "DASH [CD]", 350, 41);
 
             if (gameOver) {
                 ctx.fillStyle = "rgba(5, 5, 10, 0.9)";
@@ -520,11 +669,11 @@
                 ctx.shadowColor = "#ef4444";
                 ctx.shadowBlur = 15;
                 ctx.font = "bold 35px 'Courier New'";
-                ctx.fillText("SYSTEM FAILURE", 250, 180);
+                ctx.fillText("DIKALAHKAN BOSS", 210, 180);
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = "#94a3b8";
                 ctx.font = "14px 'Courier New'";
-                ctx.fillText("Sentuh tombol Lompat / SPASI untuk Ulangi", 215, 230);
+                ctx.fillText("Tekan Spasi untuk Ulangi", 310, 230);
             }
 
             if (gameWin) {
@@ -534,11 +683,14 @@
                 ctx.shadowColor = "#00ffcc";
                 ctx.shadowBlur = 15;
                 ctx.font = "bold 35px 'Courier New'";
-                ctx.fillText("MISSION COMPLETE", 230, 180);
+                ctx.fillText("VICTORY! BOSS DIKALAHKAN", 140, 160);
                 ctx.shadowBlur = 0;
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "16px 'Courier New'";
+                ctx.fillText("Duel Pedang Lincah Berhasil Dimenangkan!", 200, 200);
                 ctx.fillStyle = "#94a3b8";
                 ctx.font = "14px 'Courier New'";
-                ctx.fillText("Sentuh tombol Lompat / SPASI untuk Main Lagi", 210, 230);
+                ctx.fillText("Tekan Spasi untuk Main Lagi", 275, 240);
             }
         }
 
