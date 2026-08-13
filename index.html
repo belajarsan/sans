@@ -24,7 +24,7 @@
             justify-content: center;
         }
 
-        /* Trik Paksa Putar Otomatis di HP Portrait */
+        /* Paksa Rotasi Otomatis Landscape di HP Portrait */
         @media screen and (max-width: 768px) and (orientation: portrait) {
             body {
                 transform: rotate(90deg);
@@ -43,36 +43,36 @@
             align-items: center;
             justify-content: center;
             width: 100%;
-            max-width: 780px;
-            padding: 5px;
+            max-width: 820px;
+            padding: 2px;
         }
 
         h2 {
-            margin: 0 0 4px 0;
-            font-size: 13px;
+            margin: 0 0 2px 0;
+            font-size: 11px;
             color: #00ffcc;
-            text-shadow: 0 0 6px rgba(0, 255, 204, 0.7);
+            text-shadow: 0 0 4px rgba(0, 255, 204, 0.7);
             letter-spacing: 1px;
         }
 
         canvas {
             background: linear-gradient(to bottom, #090a16 0%, #1a1c38 100%);
             display: block;
-            border-radius: 6px;
-            border: 2px solid #00ffcc;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+            border-radius: 4px;
+            border: 1.5px solid #00ffcc;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
             width: 100%;
             height: auto;
-            max-height: 48vh;
+            max-height: 60vh;
             object-fit: contain;
         }
 
-        /* Panel Kontrol HP */
+        /* Panel Tombol HP (Dijamin Kelihatan & Pas) */
         .mobile-controls {
             display: flex;
             justify-content: space-between;
             width: 100%;
-            margin-top: 6px;
+            margin-top: 4px;
             padding: 0 2px;
         }
         .btn-group {
@@ -80,15 +80,15 @@
             gap: 6px;
         }
         .game-btn {
-            background: rgba(30, 41, 59, 0.9);
+            background: rgba(30, 41, 59, 0.95);
             border: 1.5px solid #00ffcc;
             color: #00ffcc;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
-            padding: 8px 12px;
-            border-radius: 6px;
+            padding: 6px 10px;
+            border-radius: 4px;
             outline: none;
-            box-shadow: 0 0 6px rgba(0, 255, 204, 0.2);
+            box-shadow: 0 0 5px rgba(0, 255, 204, 0.2);
             cursor: pointer;
         }
         .game-btn:active {
