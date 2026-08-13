@@ -2,8 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Stickman - Desktop Version</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber Stickman - Mobile & Desktop Version</title>
     <style>
         body {
             background-color: #05050a;
@@ -11,52 +11,105 @@
             font-family: 'Courier New', Courier, monospace;
             text-align: center;
             margin: 0;
-            padding: 10px;
+            padding: 5px;
+            touch-action: manipulation;
         }
         h2 {
-            margin-bottom: 2px;
-            font-size: 18px;
+            margin: 5px 0 2px 0;
+            font-size: 16px;
             color: #00ffcc;
             text-shadow: 0 0 10px rgba(0, 255, 204, 0.7);
-            letter-spacing: 2px;
+            letter-spacing: 1px;
         }
         .author {
-            font-size: 12px;
+            font-size: 11px;
             color: #38bdf8;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
         canvas {
             background: linear-gradient(to bottom, #090a16 0%, #1a1c38 100%);
             display: block;
-            margin: 10px auto;
+            margin: 5px auto;
             border-radius: 12px;
             border: 3px solid #00ffcc;
             box-shadow: 0 0 25px rgba(0, 255, 204, 0.4);
+            max-width: 100%;
+            height: auto;
         }
         .controls-info {
-            font-size: 12px;
+            font-size: 11px;
             color: #a5b4fc;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
         kbd {
             background: #1e293b;
             border: 1px solid #38bdf8;
-            padding: 2px 6px;
+            padding: 2px 5px;
             border-radius: 4px;
             color: #38bdf8;
             font-weight: bold;
+        }
+        /* Style Tombol Layar Sentuh HP */
+        .mobile-controls {
+            display: flex;
+            justify-content: space-between;
+            max-width: 800px;
+            margin: 10px auto;
+            padding: 0 10px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+        .game-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 2px solid #00ffcc;
+            color: #00ffcc;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 15px 20px;
+            border-radius: 10px;
+            outline: none;
+            user-select: none;
+            -webkit-user-select: none;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+        }
+        .game-btn:active {
+            background: #00ffcc;
+            color: #05050a;
+        }
+        .action-btn {
+            border-color: #38bdf8;
+            color: #38bdf8;
+        }
+        .action-btn:active {
+            background: #38bdf8;
+            color: #05050a;
         }
     </style>
 </head>
 <body>
 
-    <h2>⚡ CYBER STICKMAN: DESKTOP DUEL (AGILE EDITION) ⚡</h2>
+    <h2>⚡ CYBER STICKMAN: MOBILE DUEL ⚡</h2>
     <div class="author">By: Sans & Enhanced</div>
     <div class="controls-info">
-        Kontrol: <kbd>◀</kbd> <kbd>▶</kbd> Jalan | <kbd>▲</kbd> Lompat | <kbd>SHIFT</kbd> Dash 💨 | <kbd>SPACE</kbd> Tebas Pedang ⚔️
+        PC: <kbd>◀</kbd> <kbd>▶</kbd> Jalan | <kbd>▲</kbd> Lompat | <kbd>SHIFT</kbd> Dash | <kbd>SPACE</kbd> Tebas
     </div>
 
     <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+    <!-- Tombol Kontrol Khusus HP -->
+    <div class="mobile-controls">
+        <div class="btn-group">
+            <button class="game-btn" id="leftBtn">◀</button>
+            <button class="game-btn" id="rightBtn">▶</button>
+        </div>
+        <div class="btn-group">
+            <button class="game-btn action-btn" id="dashBtn">💨 DASH</button>
+            <button class="game-btn action-btn" id="jumpBtn">▲ LOMPAT</button>
+            <button class="game-btn action-btn" id="attackBtn">⚔️ TEBAS</button>
+        </div>
+    </div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
@@ -74,7 +127,6 @@
         let playerAttacking = false;
         let playerAttackCooldown = 0;
 
-        // Variabel Kelincahan Baru untuk Player
         let playerFacing = 1; // 1 = kanan, -1 = kiri
         let isDashing = false;
         let dashCooldown = 0;
@@ -89,6 +141,7 @@
 
         const keys = { right: false, left: false, shift: false };
 
+        // Event Listener Keyboard Desktop
         window.addEventListener("keydown", (e) => {
             if (e.code === "ArrowRight") { keys.right = true; playerFacing = 1; }
             if (e.code === "ArrowLeft") { keys.left = true; playerFacing = -1; }
@@ -98,10 +151,7 @@
                 if (gameOver || gameWin) {
                     resetFullGame();
                 } else if (e.code === "ArrowUp") {
-                    if (!mario.isJumping) {
-                        mario.vy = mario.jumpPower;
-                        mario.isJumping = true;
-                    }
+                    triggerJump();
                 } else if (e.code === "Space") {
                     triggerAttack();
                 }
@@ -115,10 +165,39 @@
             if (e.code === "ShiftLeft" || e.code === "ShiftRight") { keys.shift = false; }
         });
 
+        // Event Listener Touchscreen HP
+        const bindTouchButton = (id, actionDown, actionUp) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.addEventListener("touchstart", (e) => { e.preventDefault(); actionDown(); });
+            btn.addEventListener("touchend", (e) => { e.preventDefault(); if(actionUp) actionUp(); });
+            btn.addEventListener("mousedown", (e) => { e.preventDefault(); actionDown(); });
+            btn.addEventListener("mouseup", (e) => { e.preventDefault(); if(actionUp) actionUp(); });
+        };
+
+        bindTouchButton("leftBtn", () => { keys.left = true; playerFacing = -1; }, () => { keys.left = false; });
+        bindTouchButton("rightBtn", () => { keys.right = true; playerFacing = 1; }, () => { keys.right = false; });
+        bindTouchButton("dashBtn", () => { keys.shift = true; setTimeout(() => { keys.shift = false; }, 200); });
+        bindTouchButton("jumpBtn", () => {
+            if (gameOver || gameWin) resetFullGame();
+            else triggerJump();
+        });
+        bindTouchButton("attackBtn", () => {
+            if (gameOver || gameWin) resetFullGame();
+            else triggerAttack();
+        });
+
+        function triggerJump() {
+            if (!mario.isJumping) {
+                mario.vy = mario.jumpPower;
+                mario.isJumping = true;
+            }
+        }
+
         function triggerAttack() {
             if (!hasSword || !bossFightActive || playerAttackCooldown > 0) return;
             playerAttacking = true;
-            playerAttackCooldown = 12; // Cooldown lebih cepat agar lincah
+            playerAttackCooldown = 12;
 
             let dist = Math.abs((mario.x + mario.width / 2) - (boss.x + boss.width / 2));
             if (dist < 90 && mario.y + mario.height >= boss.y - 25) {
@@ -140,11 +219,11 @@
             y: 200,
             width: 30,
             height: 50,
-            speed: 6.0,          // Sedikit ditambah agar responsif
-            dashSpeed: 14.0,     // Kecepatan kilat saat dash
+            speed: 6.0,
+            dashSpeed: 14.0,
             vy: 0,
-            gravity: 0.58,       // Gravitasi disesuaikan agar kontrol udara lebih enak
-            jumpPower: -13.0,    // Lompatan sedikit lebih tinggi
+            gravity: 0.58,
+            jumpPower: -13.0,
             isJumping: false,
             animFrame: 0
         };
@@ -257,11 +336,10 @@
             if (playerAttackCooldown > 0) playerAttackCooldown--;
             if (dashCooldown > 0) dashCooldown--;
 
-            // Sistem Dash (Kelincahan Player)
             if (keys.shift && dashCooldown === 0 && !isDashing) {
                 isDashing = true;
-                dashTimer = 12; // Durasi dash singkat
-                dashCooldown = 45; // Cooldown dash agar tidak spamming berlebihan
+                dashTimer = 12;
+                dashCooldown = 45;
             }
 
             let currentSpeed = mario.speed;
@@ -374,10 +452,6 @@
 
                 if (bossState === 'hunt') {
                     boss.x += bossDirection * boss.speed * 1.3;
-                    if (Math.abs(distToPlayer) < 60 && Math.random() < 0.1) {
-                        bossAttacking = true;
-                        setTimeout(() => { bossAttacking = false; }, 180);
-                    }
                 } else if (bossState === 'jumpAttack') {
                     boss.x += bossDirection * boss.speed * 1.6;
                 } else if (bossState === 'dash') {
@@ -426,7 +500,7 @@
                 ) {
                     if (mario.vy > 0 && mario.y + mario.height - mario.vy <= enemy.y + 12) {
                         enemy.alive = false;
-                        mario.vy = -10; // Dorongan pantulan musuh lebih tinggi
+                        mario.vy = -10;
                         score += 150;
                     } else {
                         lives--;
@@ -597,7 +671,7 @@
                 }
             });
 
-            // Render Player Stickman (Efek Glow Cyan jika sedang Dash)
+            // Render Player Stickman
             ctx.strokeStyle = isDashing ? "#00ffcc" : "#ffffff";
             ctx.lineWidth = 3.5;
             ctx.lineCap = "round";
@@ -673,7 +747,7 @@
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = "#94a3b8";
                 ctx.font = "14px 'Courier New'";
-                ctx.fillText("Tekan Spasi untuk Ulangi", 310, 230);
+                ctx.fillText("Sentuh Tombol untuk Ulangi", 290, 230);
             }
 
             if (gameWin) {
@@ -687,10 +761,10 @@
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = "#ffffff";
                 ctx.font = "16px 'Courier New'";
-                ctx.fillText("Duel Pedang Lincah Berhasil Dimenangkan!", 200, 200);
+                ctx.fillText("Duel Pedang Berhasil Dimenangkan!", 220, 200);
                 ctx.fillStyle = "#94a3b8";
                 ctx.font = "14px 'Courier New'";
-                ctx.fillText("Tekan Spasi untuk Main Lagi", 275, 240);
+                ctx.fillText("Sentuh Tombol untuk Main Lagi", 270, 240);
             }
         }
 
