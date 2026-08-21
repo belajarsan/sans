@@ -3,794 +3,567 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Stickman - Auto Landscape</title>
+    <title>Retro Apex Racing: 6 Levels Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        body {
-            background-color: #05050a;
-            color: #fff;
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Paksa Rotasi Otomatis Landscape di HP Portrait */
-        @media screen and (max-width: 768px) and (orientation: portrait) {
-            body {
-                transform: rotate(90deg);
-                transform-origin: bottom left;
-                position: absolute;
-                top: -100vw;
-                left: 0;
-                width: 100vh;
-                height: 100vw;
-            }
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            max-width: 820px;
-            padding: 2px;
-        }
-
-        h2 {
-            margin: 0 0 2px 0;
-            font-size: 11px;
-            color: #00ffcc;
-            text-shadow: 0 0 4px rgba(0, 255, 204, 0.7);
-            letter-spacing: 1px;
-        }
-
-        canvas {
-            background: linear-gradient(to bottom, #090a16 0%, #1a1c38 100%);
-            display: block;
-            border-radius: 4px;
-            border: 1.5px solid #00ffcc;
-            box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
-            width: 100%;
-            height: auto;
-            max-height: 60vh;
-            object-fit: contain;
-        }
-
-        /* Panel Tombol HP (Dijamin Kelihatan & Pas) */
-        .mobile-controls {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-top: 4px;
-            padding: 0 2px;
-        }
-        .btn-group {
-            display: flex;
-            gap: 6px;
-        }
-        .game-btn {
-            background: rgba(30, 41, 59, 0.95);
-            border: 1.5px solid #00ffcc;
-            color: #00ffcc;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 6px 10px;
-            border-radius: 4px;
-            outline: none;
-            box-shadow: 0 0 5px rgba(0, 255, 204, 0.2);
-            cursor: pointer;
-        }
-        .game-btn:active {
-            background: #00ffcc;
-            color: #05050a;
-        }
-        .action-btn {
-            border-color: #38bdf8;
-            color: #38bdf8;
-        }
-        .action-btn:active {
-            background: #38bdf8;
-            color: #05050a;
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap');
+        body { font-family: 'Orbitron', sans-serif; touch-action: manipulation; }
+        .arcade-box {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(6, 182, 212, 0.4);
         }
     </style>
 </head>
-<body>
+<body class="bg-slate-950 min-h-screen flex items-center justify-center p-2 select-none text-slate-100 overflow-hidden">
 
-    <div class="container">
-        <h2>⚡ CYBER STICKMAN: AUTO LANDSCAPE ⚡</h2>
+    <div class="bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-3 border-2 border-slate-700 arcade-box relative flex flex-col justify-between">
         
-        <canvas id="gameCanvas" width="800" height="400"></canvas>
-
-        <!-- Tombol Kontrol Layar Sentuh -->
-        <div class="mobile-controls">
-            <div class="btn-group">
-                <button class="game-btn" id="leftBtn">◀ KIRI</button>
-                <button class="game-btn" id="rightBtn">KANAN ▶</button>
+        <!-- HEADER -->
+        <div class="flex justify-between items-center mb-2 pb-2 border-b border-slate-800">
+            <div>
+                <span id="level-badge" class="text-[8px] font-extrabold uppercase tracking-widest bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 px-2 py-0.5 rounded-full">LEVEL 1 / 6</span>
+                <h1 class="text-xs font-black mt-0.5 text-amber-400">RETRO APEX 🏎️</h1>
             </div>
-            <div class="btn-group">
-                <button class="game-btn action-btn" id="dashBtn">💨 DASH</button>
-                <button class="game-btn action-btn" id="jumpBtn">▲ LOMPAT</button>
-                <button class="game-btn action-btn" id="attackBtn">⚔️ TEBAS</button>
+            <div class="flex items-center gap-1.5">
+                <div class="text-[9px] font-bold text-slate-300 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
+                    SKOR: <span id="score" class="text-yellow-400 font-black">0</span>/<span id="target-score">150</span>
+                </div>
+                <div id="lives-container" class="text-xs bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">❤️❤️❤️</div>
             </div>
         </div>
+
+        <!-- BENSIN & PIT STOP -->
+        <div class="bg-slate-950 p-2 rounded-xl mb-2 border border-slate-800 flex items-center justify-between">
+            <div class="flex-1 mr-2">
+                <div class="text-[8px] uppercase tracking-wider text-amber-400 font-bold flex justify-between mb-0.5">
+                    <span>Bensin</span>
+                    <span id="fuel-text">100%</span>
+                </div>
+                <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                    <div id="fuel-bar" class="bg-gradient-to-r from-red-500 via-amber-400 to-emerald-400 h-full rounded-full transition-all duration-300" style="width: 100%;"></div>
+                </div>
+            </div>
+            
+            <button onclick="openGasStation()" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 text-slate-950 text-[9px] font-black px-2.5 py-2 rounded-xl shadow-lg transform active:scale-95 transition flex flex-col items-center border border-amber-300 animate-pulse">
+                <span class="text-sm leading-none">⛽</span>
+                <span class="mt-0.5 text-[7px]">PIT STOP</span>
+            </button>
+        </div>
+
+        <!-- CANVAS GAME -->
+        <div class="relative w-full h-72 bg-slate-950 rounded-xl overflow-hidden border border-slate-700 shadow-inner flex justify-center">
+            <canvas id="gameCanvas" width="280" height="288" class="block"></canvas>
+            
+            <div id="warning-text" class="absolute top-2 left-2 right-2 text-center text-[8px] bg-red-600/90 text-white px-2 py-1 rounded-full font-black tracking-wider opacity-0 transition shadow-lg border border-red-400">
+                ⚠️ BENSIN MAU HABIS! ISI DI PIT STOP ⛽
+            </div>
+
+            <div id="level-up-banner" class="absolute inset-x-0 top-1/3 text-center transition-all duration-500 opacity-0 pointer-events-none transform scale-50">
+                <div class="inline-block bg-cyan-500 text-slate-950 font-black text-sm px-4 py-2 rounded-xl shadow-2xl border-2 border-white tracking-widest">
+                    🚀 LEVEL UP! 🚀
+                </div>
+            </div>
+        </div>
+
+        <!-- TOMBOL KONTROL HP -->
+        <div class="grid grid-cols-4 gap-1.5 mt-2.5">
+            <button ontouchstart="movePlayer('left'); event.preventDefault();" onclick="movePlayer('left')" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-cyan-300 font-black py-3 rounded-xl text-sm active:scale-95 transition shadow">◀</button>
+            <button ontouchstart="carBrake(); event.preventDefault();" onclick="carBrake()" class="bg-rose-950 hover:bg-rose-900 border border-rose-700 text-rose-300 font-bold py-3 rounded-xl text-[10px] active:scale-95 transition shadow">REM</button>
+            <button ontouchstart="carGas(); event.preventDefault();" onclick="carGas()" class="bg-emerald-950 hover:bg-emerald-900 border border-emerald-700 text-emerald-300 font-bold py-3 rounded-xl text-[10px] active:scale-95 transition shadow">GAS</button>
+            <button ontouchstart="movePlayer('right'); event.preventDefault();" onclick="movePlayer('right')" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-cyan-300 font-black py-3 rounded-xl text-sm active:scale-95 transition shadow">▶</button>
+        </div>
+
+        <!-- MODAL KUIS PIT STOP -->
+        <div id="quiz-modal" class="hidden absolute inset-0 bg-slate-950/95 z-30 p-4 flex flex-col justify-between backdrop-blur-md">
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="bg-amber-500 text-slate-950 font-black text-[8px] uppercase px-2.5 py-1 rounded-full tracking-wider">PIT STOP QUIZ ⛽</span>
+                    <div class="bg-red-600 text-white font-black text-[9px] px-2.5 py-1 rounded-full">
+                        ⏱️ <span id="time-left">10</span>s
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-700 p-3 rounded-xl shadow-inner mb-2.5">
+                    <p class="text-[8px] text-amber-400 font-bold uppercase tracking-widest mb-1">Pertanyaan Bahasa Indonesia</p>
+                    <p id="quiz-question" class="text-xs font-bold leading-snug text-slate-100">Memuat pertanyaan...</p>
+                </div>
+
+                <div id="quiz-options" class="space-y-1.5"></div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+                <span class="text-[8px] text-slate-400">Ganti soal?</span>
+                <button onclick="changeQuestion()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 text-[9px] font-bold px-2.5 py-1 rounded-xl border border-slate-700 transition">
+                    🔄 Ganti Soal
+                </button>
+            </div>
+        </div>
+
+        <!-- LAYAR KEMENANGAN -->
+        <div id="win-screen" class="hidden absolute inset-0 bg-emerald-950/95 z-40 p-5 flex flex-col items-center justify-center text-center">
+            <div class="text-5xl mb-2 animate-bounce">🏆🏁</div>
+            <h2 class="text-base font-black text-emerald-400 tracking-wider mb-1">SELAMAT!</h2>
+            <p class="text-slate-300 text-[10px] mb-4">Kamu berhasil menyelesaikan seluruh 6 Level balapan dengan gemilang!</p>
+            <button onclick="restartGame()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs py-3 rounded-xl shadow transition tracking-widest">MAIN LAGI 🔄</button>
+        </div>
+
+        <!-- LAYAR GAME OVER -->
+        <div id="result-screen" class="hidden absolute inset-0 bg-slate-950/95 z-40 p-5 flex flex-col items-center justify-center text-center">
+            <div class="text-5xl mb-2 animate-bounce">💥🚗</div>
+            <h2 class="text-base font-black text-rose-500 tracking-wider mb-1">GAME OVER</h2>
+            <p id="result-message" class="text-slate-400 text-[10px] mb-4">Perjalanan balapmu terhenti.</p>
+            <button onclick="restartGame()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs py-3 rounded-xl shadow transition tracking-widest">COBA LAGI 🔄</button>
+        </div>
+
     </div>
 
+    <!-- SCRIPT GAME -->
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        let score = 0;
-        let coins = 0;
-        let lives = 3;
-        let bossLives = 5;
-        let gameOver = false;
-        let gameWin = false;
-        let hasSword = false;
-        let bossFightActive = false;
-        
-        let playerAttacking = false;
-        let playerAttackCooldown = 0;
+        const questionBank = [
+            { q: "Apa sinonim dari kata **'Gemar'**?", options: ["Malas", "Suka", "Benci", "Lelah"], answer: 1 },
+            { q: "Apa sinonim dari kata **'Cepat'**?", options: ["Lambat", "Kilat", "Pelan", "Berat"], answer: 1 },
+            { q: "Apa sinonim dari kata **'Haus'**?", options: ["Lapar", "Dahaga", "Kenyang", "Segar"], answer: 1 },
+            { q: "Apa antonim dari kata **'Tinggi'**?", options: ["Panjang", "Pendek", "Rendah", "Kecil"], answer: 2 },
+            { q: "Apa antonim dari kata **'Rajin'**?", options: ["Pintar", "Malas", "Bodoh", "Giat"], answer: 1 },
+            { q: "Apa antonim dari kata **'Berani'**?", options: ["Takut", "Kuat", "Hebat", "Maju"], answer: 0 },
+            { q: "Manakah penulisan kata baku yang benar?", options: ["Apotik", "Apotek", "Epoteek", "Apotek'"], answer: 1 },
+            { q: "Manakah penulisan kata baku yang tepat?", options: ["Jadwal", "Jadual", "Zadual", "Jadwul"], answer: 0 },
+            { q: "Manakah penulisan kata baku yang benar?", options: ["Analisa", "Analisis", "Anlisis", "Analiasi"], answer: 1 },
+            { q: "Apa arti peribahasa **'Besar pasak daripada tiang'**?", options: ["Pendapatan lebih besar dari pengeluaran", "Pengeluaran lebih besar daripada pendapatan", "Rumah yang besar", "Tiang rumah yang kokoh"], answer: 1 }
+        ];
 
-        let playerFacing = 1; 
-        let isDashing = false;
-        let dashCooldown = 0;
-        let dashTimer = 0;
-        
-        let bossState = 'hunt';
-        let bossTimer = 0;
-        let bossVy = 0;
-        let bossIsJumping = false;
-        let bossAttacking = false;
-        let bossDirection = -1;
+        // Pengaturan 6 Level
+        const levels = [
+            { level: 1, target: 150, speed: 3.5, fuelDrain: 3, spawnRate: 1400 },
+            { level: 2, target: 350, speed: 4.2, fuelDrain: 3.5, spawnRate: 1200 },
+            { level: 3, target: 600, speed: 5.0, fuelDrain: 4, spawnRate: 1050 },
+            { level: 4, target: 900, speed: 5.8, fuelDrain: 4.5, spawnRate: 900 },
+            { level: 5, target: 1250, speed: 6.6, fuelDrain: 5, spawnRate: 800 },
+            { level: 6, target: 1700, speed: 7.5, fuelDrain: 6, spawnRate: 700 }
+        ];
 
-        const keys = { right: false, left: false, shift: false };
+        let currentLevelIdx = 0;
+        let gameState = {
+            score: 0,
+            lives: 3,
+            fuel: 100,
+            isDriving: true
+        };
 
-        // Keyboard Listener (PC)
+        const lanes = [65, 122, 179];
+        let player = {
+            laneIndex: 1,
+            x: 122,
+            y: 210,
+            width: 36,
+            height: 60,
+            color: "#ef4444"
+        };
+
+        let obstacles = [];
+        let sceneryObjects = [];
+        let roadOffset = 0;
+        let fuelTimer = null;
+        let quizTimer = null;
+        let timeLeft = 10;
+        let currentQuiz = null;
+        let obstacleInterval = null;
+
+        const el = {
+            score: document.getElementById("score"),
+            targetScore: document.getElementById("target-score"),
+            levelBadge: document.getElementById("level-badge"),
+            levelUpBanner: document.getElementById("level-up-banner"),
+            livesContainer: document.getElementById("lives-container"),
+            fuelBar: document.getElementById("fuel-bar"),
+            fuelText: document.getElementById("fuel-text"),
+            warningText: document.getElementById("warning-text"),
+            quizModal: document.getElementById("quiz-modal"),
+            quizQuestion: document.getElementById("quiz-question"),
+            quizOptions: document.getElementById("quiz-options"),
+            timeLeft: document.getElementById("time-left"),
+            winScreen: document.getElementById("win-screen"),
+            resultScreen: document.getElementById("result-screen"),
+            resultMessage: document.getElementById("result-message")
+        };
+
+        function movePlayer(direction) {
+            if (!gameState.isDriving) return;
+            if (direction === 'left' && player.laneIndex > 0) {
+                player.laneIndex--;
+            } else if (direction === 'right' && player.laneIndex < lanes.length - 1) {
+                player.laneIndex++;
+            }
+            player.x = lanes[player.laneIndex];
+        }
+
+        function carGas() {
+            if (!gameState.isDriving) return;
+            let currentCfg = levels[currentLevelIdx];
+            currentCfg.speed += 2;
+            setTimeout(() => { if(gameState.isDriving) currentCfg.speed = levels[currentLevelIdx].speed; }, 1500);
+        }
+
+        function carBrake() {
+            if (!gameState.isDriving) return;
+            let currentCfg = levels[currentLevelIdx];
+            let original = currentCfg.speed;
+            currentCfg.speed = 2;
+            setTimeout(() => { if(gameState.isDriving) currentCfg.speed = original; }, 1500);
+        }
+
         window.addEventListener("keydown", (e) => {
-            if (e.code === "ArrowRight") { keys.right = true; playerFacing = 1; }
-            if (e.code === "ArrowLeft") { keys.left = true; playerFacing = -1; }
-            if (e.code === "ShiftLeft" || e.code === "ShiftRight") { keys.shift = true; }
+            if (!gameState.isDriving) return;
+            if (e.key === "ArrowLeft") movePlayer('left');
+            else if (e.key === "ArrowRight") movePlayer('right');
+            else if (e.key === "ArrowUp") carGas();
+            else if (e.key === "ArrowDown") carBrake();
+        });
+
+        function spawnObstacle() {
+            if (!gameState.isDriving) return;
+            const randomLane = Math.floor(Math.random() * lanes.length);
+            const colors = ["#eab308", "#3b82f6", "#10b981", "#a855f7", "#ec4899", "#06b6d4"];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
             
-            if (e.code === "ArrowUp" || e.code === "Space") {
-                if (gameOver || gameWin) {
-                    resetFullGame();
-                } else if (e.code === "ArrowUp") {
-                    triggerJump();
-                } else if (e.code === "Space") {
-                    triggerAttack();
+            obstacles.push({
+                x: lanes[randomLane],
+                y: -70,
+                width: 36,
+                height: 60,
+                color: randomColor
+            });
+        }
+
+        function spawnScenery() {
+            if (!gameState.isDriving) return;
+            const side = Math.random() > 0.5 ? 'left' : 'right';
+            const xPos = side === 'left' ? Math.random() * 20 + 5 : Math.random() * 20 + 225;
+            const type = Math.random() > 0.4 ? 'tree' : 'house';
+
+            sceneryObjects.push({
+                x: xPos,
+                y: -60,
+                type: type,
+                width: type === 'house' ? 22 : 14,
+                height: type === 'house' ? 28 : 20
+            });
+        }
+
+        function resetSpawner() {
+            if (obstacleInterval) clearInterval(obstacleInterval);
+            obstacleInterval = setInterval(() => {
+                if (gameState.isDriving) {
+                    spawnObstacle();
+                    spawnScenery();
                 }
-                e.preventDefault();
-            }
-        });
+            }, levels[currentLevelIdx].spawnRate);
+        }
 
-        window.addEventListener("keyup", (e) => {
-            if (e.code === "ArrowRight") keys.right = false;
-            if (e.code === "ArrowLeft") keys.left = false;
-            if (e.code === "ShiftLeft" || e.code === "ShiftRight") { keys.shift = false; }
-        });
+        function startEngineLoop() {
+            if (fuelTimer) clearInterval(fuelTimer);
+            resetSpawner();
 
-        // Touchscreen & Mouse Listener
-        const bindTouchButton = (id, actionDown, actionUp) => {
-            const btn = document.getElementById(id);
-            if (!btn) return;
-            btn.addEventListener("touchstart", (e) => { e.preventDefault(); actionDown(); }, {passive: false});
-            btn.addEventListener("touchend", (e) => { e.preventDefault(); if(actionUp) actionUp(); }, {passive: false});
-            btn.addEventListener("mousedown", (e) => { e.preventDefault(); actionDown(); });
-            btn.addEventListener("mouseup", (e) => { e.preventDefault(); if(actionUp) actionUp(); });
-        };
+            fuelTimer = setInterval(() => {
+                if (!gameState.isDriving) return;
+                
+                let cfg = levels[currentLevelIdx];
+                gameState.fuel -= cfg.fuelDrain;
+                gameState.score += 5;
+                
+                checkLevelProgression();
 
-        bindTouchButton("leftBtn", () => { keys.left = true; playerFacing = -1; }, () => { keys.left = false; });
-        bindTouchButton("rightBtn", () => { keys.right = true; playerFacing = 1; }, () => { keys.right = false; });
-        bindTouchButton("dashBtn", () => { keys.shift = true; setTimeout(() => { keys.shift = false; }, 200); });
-        bindTouchButton("jumpBtn", () => {
-            if (gameOver || gameWin) resetFullGame();
-            else triggerJump();
-        });
-        bindTouchButton("attackBtn", () => {
-            if (gameOver || gameWin) resetFullGame();
-            else triggerAttack();
-        });
+                if (gameState.fuel < 0) gameState.fuel = 0;
+                updateUI();
 
-        function triggerJump() {
-            if (!mario.isJumping) {
-                mario.vy = mario.jumpPower;
-                mario.isJumping = true;
+                if (gameState.fuel <= 0) {
+                    triggerGameOver("Bensin Habis Total!");
+                }
+            }, 1000);
+        }
+
+        function checkLevelProgression() {
+            let cfg = levels[currentLevelIdx];
+            if (gameState.score >= cfg.target) {
+                if (currentLevelIdx < levels.length - 1) {
+                    currentLevelIdx++;
+                    showLevelUpAnimation();
+                    resetSpawner();
+                } else {
+                    triggerWin();
+                }
             }
         }
 
-        function triggerAttack() {
-            if (!hasSword || !bossFightActive || playerAttackCooldown > 0) return;
-            playerAttacking = true;
-            playerAttackCooldown = 12;
-
-            let dist = Math.abs((mario.x + mario.width / 2) - (boss.x + boss.width / 2));
-            if (dist < 90 && mario.y + mario.height >= boss.y - 25) {
-                bossLives--;
-                boss.x += (mario.x < boss.x) ? 50 : -50;
-                bossVy = -7;
-                if (bossLives <= 0) {
-                    gameWin = true;
-                }
-            }
-
+        function showLevelUpAnimation() {
+            el.levelUpBanner.classList.remove("opacity-0", "scale-50");
+            el.levelUpBanner.classList.add("opacity-100", "scale-100");
             setTimeout(() => {
-                playerAttacking = false;
-            }, 120);
+                el.levelUpBanner.classList.remove("opacity-100", "scale-100");
+                el.levelUpBanner.classList.add("opacity-0", "scale-50");
+            }, 1800);
         }
 
-        const mario = {
-            x: 100,
-            y: 200,
-            width: 30,
-            height: 50,
-            speed: 6.0,
-            dashSpeed: 14.0,
-            vy: 0,
-            gravity: 0.58,
-            jumpPower: -13.0,
-            isJumping: false,
-            animFrame: 0
-        };
+        function updateUI() {
+            let cfg = levels[currentLevelIdx];
+            el.score.innerText = gameState.score;
+            el.targetScore.innerText = cfg.target;
+            el.levelBadge.innerText = `LEVEL ${cfg.level} / 6`;
+            el.livesContainer.innerHTML = '❤️'.repeat(gameState.lives) + '🖤'.repeat(3 - gameState.lives);
+            el.fuelBar.style.width = gameState.fuel + "%";
+            el.fuelText.innerText = Math.round(gameState.fuel) + "%";
 
-        const boss = {
-            x: 4200,
-            y: 230,
-            width: 30,
-            height: 50,
-            speed: 3.2,
-            animFrame: 0
-        };
-
-        let cameraX = 0;
-        const worldWidth = 5000;
-
-        const platforms = [
-            { x: 300, y: 220, width: 90, height: 20, type: 'block' },
-            { x: 420, y: 160, width: 80, height: 20, type: 'block' },
-            { x: 570, y: 240, width: 60, height: 80, type: 'pipe' },
-            { x: 750, y: 210, width: 120, height: 20, type: 'block' },
-            { x: 950, y: 150, width: 90, height: 20, type: 'block' },
-            { x: 1120, y: 220, width: 70, height: 100, type: 'pipe' },
-            { x: 1300, y: 180, width: 110, height: 20, type: 'block' },
-            { x: 1500, y: 130, width: 80, height: 20, type: 'block' },
-            { x: 1680, y: 210, width: 65, height: 110, type: 'pipe' },
-            { x: 1900, y: 170, width: 130, height: 20, type: 'block' },
-            { x: 2150, y: 220, width: 90, height: 20, type: 'block' },
-            { x: 2320, y: 150, width: 100, height: 20, type: 'block' },
-            { x: 2550, y: 200, width: 70, height: 120, type: 'pipe' },
-            { x: 2800, y: 170, width: 120, height: 20, type: 'block' },
-            { x: 3050, y: 130, width: 100, height: 20, type: 'block' },
-            { x: 3280, y: 210, width: 70, height: 110, type: 'pipe' },
-            { x: 3500, y: 170, width: 140, height: 20, type: 'block' },
-            { x: 3800, y: 140, width: 100, height: 20, type: 'block' },
-            { x: 4100, y: 180, width: 120, height: 20, type: 'block' },
-            { x: 4350, y: 220, width: 600, height: 90, type: 'block' }
-        ];
-
-        const spikes = [
-            { x: 680, y: 290, width: 45, height: 20 },
-            { x: 1250, y: 290, width: 45, height: 20 },
-            { x: 1820, y: 290, width: 60, height: 20 },
-            { x: 2450, y: 290, width: 50, height: 20 },
-            { x: 2950, y: 290, width: 55, height: 20 },
-            { x: 3680, y: 290, width: 70, height: 20 }
-        ];
-
-        let coinList = [
-            { x: 320, y: 170, collected: false }, { x: 355, y: 170, collected: false },
-            { x: 445, y: 110, collected: false }, { x: 480, y: 110, collected: false },
-            { x: 780, y: 160, collected: false }, { x: 820, y: 160, collected: false },
-            { x: 975, y: 100, collected: false }, { x: 1330, y: 130, collected: false },
-            { x: 1530, y: 80, collected: false },  { x: 1930, y: 120, collected: false },
-            { x: 2350, y: 100, collected: false }, { x: 2830, y: 120, collected: false },
-            { x: 3080, y: 80, collected: false },  { x: 3530, y: 120, collected: false },
-            { x: 3830, y: 90, collected: false },  { x: 4130, y: 130, collected: false }
-        ];
-
-        const swordItem = { x: 4000, y: 250, width: 25, height: 20, collected: false };
-
-        let enemies = [
-            { x: 500, y: 280, width: 32, height: 32, speed: 1.6, direction: 1, minX: 420, maxX: 650, alive: true },
-            { x: 1000, y: 280, width: 32, height: 32, speed: 1.8, direction: -1, minX: 850, maxX: 1100, alive: true },
-            { x: 1600, y: 280, width: 32, height: 32, speed: 2.0, direction: 1, minX: 1450, maxX: 1750, alive: true },
-            { x: 2200, y: 280, width: 32, height: 32, speed: 2.2, direction: -1, minX: 2000, maxX: 2300, alive: true },
-            { x: 2700, y: 280, width: 32, height: 32, speed: 2.1, direction: 1, minX: 2550, maxX: 2850, alive: true },
-            { x: 3400, y: 280, width: 32, height: 32, speed: 2.4, direction: -1, minX: 3250, maxX: 3550, alive: true },
-            { x: 3950, y: 280, width: 32, height: 32, speed: 2.5, direction: 1, minX: 3800, maxX: 4100, alive: true }
-        ];
-
-        function resetPosition() {
-            mario.x = 100;
-            mario.y = 200;
-            mario.vy = 0;
-            mario.isJumping = false;
-            isDashing = false;
-            cameraX = 0;
+            if (gameState.fuel < 35) {
+                el.warningText.style.opacity = "1";
+            } else {
+                el.warningText.style.opacity = "0";
+            }
         }
 
-        function resetFullGame() {
-            score = 0;
-            coins = 0;
-            lives = 3;
-            bossLives = 5;
-            gameOver = false;
-            gameWin = false;
-            hasSword = false;
-            bossFightActive = false;
-            playerAttacking = false;
-            playerAttackCooldown = 0;
-            isDashing = false;
-            dashCooldown = 0;
-            bossState = 'hunt';
-            bossTimer = 0;
-            bossVy = 0;
-            bossIsJumping = false;
-            bossAttacking = false;
-            resetPosition();
-            coinList.forEach(c => c.collected = false);
-            swordItem.collected = false;
-            enemies.forEach(e => e.alive = true);
-            boss.x = 4400;
-            boss.y = 230;
+        function drawCar(x, y, w, h, baseColor, isPlayer = false) {
+            ctx.save();
+            ctx.fillStyle = baseColor;
+            ctx.beginPath();
+            ctx.roundRect(x, y, w, h, [6, 6, 4, 4]);
+            ctx.fill();
+
+            ctx.fillStyle = "#1e293b";
+            ctx.fillRect(x + 5, y + 12, w - 10, 16);
+            ctx.fillStyle = "#38bdf8";
+            ctx.fillRect(x + 6, y + 14, w - 12, 6);
+
+            if (isPlayer) {
+                ctx.fillStyle = "#0f172a";
+                ctx.fillRect(x - 2, y + h - 6, w + 4, 4);
+            }
+
+            ctx.fillStyle = "#fef08a";
+            ctx.fillRect(x + 3, y + 2, 6, 3);
+            ctx.fillRect(x + w - 9, y + 2, 6, 3);
+
+            ctx.restore();
+        }
+
+        function drawScenery(item) {
+            ctx.save();
+            if (item.type === 'tree') {
+                ctx.fillStyle = "#78350f";
+                ctx.fillRect(item.x + 5, item.y + 10, 4, 10);
+                ctx.fillStyle = "#059669";
+                ctx.beginPath();
+                ctx.arc(item.x + 7, item.y + 8, 8, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.fillStyle = "#334155";
+                ctx.fillRect(item.x, item.y + 6, item.width, item.height);
+                ctx.fillStyle = "#e11d48";
+                ctx.beginPath();
+                ctx.moveTo(item.x - 2, item.y + 6);
+                ctx.lineTo(item.x + item.width / 2, item.y);
+                ctx.lineTo(item.x + item.width + 2, item.y + 6);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
         }
 
         function update() {
-            if (gameOver || gameWin) return;
+            if (!gameState.isDriving) return;
 
-            if (playerAttackCooldown > 0) playerAttackCooldown--;
-            if (dashCooldown > 0) dashCooldown--;
+            let cfg = levels[currentLevelIdx];
+            roadOffset += cfg.speed;
+            if (roadOffset >= 40) roadOffset = 0;
 
-            if (keys.shift && dashCooldown === 0 && !isDashing) {
-                isDashing = true;
-                dashTimer = 12;
-                dashCooldown = 45;
+            for (let i = sceneryObjects.length - 1; i >= 0; i--) {
+                sceneryObjects[i].y += cfg.speed;
+                if (sceneryObjects[i].y > canvas.height) sceneryObjects.splice(i, 1);
             }
 
-            let currentSpeed = mario.speed;
-            if (isDashing) {
-                currentSpeed = mario.dashSpeed;
-                dashTimer--;
-                if (dashTimer <= 0) {
-                    isDashing = false;
-                }
-            }
-
-            if (keys.right) {
-                mario.x += currentSpeed;
-                mario.animFrame += isDashing ? 0.6 : 0.3;
-            }
-            if (keys.left) {
-                mario.x -= currentSpeed;
-                mario.animFrame += isDashing ? 0.6 : 0.3;
-                if (mario.x < 0) mario.x = 0;
-            }
-
-            cameraX = mario.x - 250;
-            if (cameraX < 0) cameraX = 0;
-            if (cameraX > worldWidth - canvas.width) cameraX = worldWidth - canvas.width;
-
-            mario.vy += mario.gravity;
-            mario.y += mario.vy;
-
-            if (mario.y >= 280) {
-                mario.y = 280;
-                mario.vy = 0;
-                mario.isJumping = false;
-            }
-
-            platforms.forEach(p => {
-                if (
-                    mario.x < p.x + p.width &&
-                    mario.x + mario.width > p.x &&
-                    mario.y + mario.height >= p.y &&
-                    mario.y + mario.height - mario.vy <= p.y
-                ) {
-                    mario.y = p.y - mario.height;
-                    mario.vy = 0;
-                    mario.isJumping = false;
-                }
-            });
-
-            spikes.forEach(s => {
-                if (
-                    mario.x < s.x + s.width &&
-                    mario.x + mario.width > s.x &&
-                    mario.y + mario.height >= s.y &&
-                    mario.y < s.y + s.height
-                ) {
-                    lives--;
-                    if (lives <= 0) {
-                        gameOver = true;
-                    } else {
-                        resetPosition();
-                    }
-                }
-            });
-
-            coinList.forEach(c => {
-                if (!c.collected &&
-                    mario.x < c.x + 20 &&
-                    mario.x + mario.width > c.x &&
-                    mario.y < c.y + 20 &&
-                    mario.y + mario.height > c.y
-                ) {
-                    c.collected = true;
-                    coins++;
-                    score += 250;
-                }
-            });
-
-            if (!swordItem.collected &&
-                mario.x < swordItem.x + swordItem.width &&
-                mario.x + mario.width > swordItem.x &&
-                mario.y < swordItem.y + swordItem.height &&
-                mario.y + mario.height > swordItem.y
-            ) {
-                swordItem.collected = true;
-                hasSword = true;
-                bossFightActive = true;
-                score += 500;
-            }
-
-            if (bossFightActive) {
-                boss.animFrame += 0.3;
-                bossTimer++;
-
-                let distToPlayer = (mario.x + mario.width / 2) - (boss.x + boss.width / 2);
-                bossDirection = distToPlayer > 0 ? 1 : -1;
-
-                if (bossTimer > 90) {
-                    let rand = Math.random();
-                    if (rand < 0.5) bossState = 'hunt';
-                    else if (rand < 0.8) {
-                        bossState = 'jumpAttack';
-                        if (!bossIsJumping) {
-                            bossVy = -13;
-                            bossIsJumping = true;
-                        }
-                    } else {
-                        bossState = 'dash';
-                    }
-                    bossTimer = 0;
-                }
-
-                if (bossState === 'hunt') {
-                    boss.x += bossDirection * boss.speed * 1.3;
-                } else if (bossState === 'jumpAttack') {
-                    boss.x += bossDirection * boss.speed * 1.6;
-                } else if (bossState === 'dash') {
-                    boss.x += bossDirection * boss.speed * 2.2;
-                    bossAttacking = true;
-                    setTimeout(() => { bossAttacking = false; }, 250);
-                }
-
-                bossVy += mario.gravity;
-                boss.y += bossVy;
-                if (boss.y >= 230) {
-                    boss.y = 230;
-                    bossVy = 0;
-                    bossIsJumping = false;
-                }
-
-                if (boss.x < 0) boss.x = 0;
-                if (boss.x > worldWidth - boss.width) boss.x = worldWidth - boss.width;
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                obstacles[i].y += cfg.speed;
 
                 if (
-                    mario.x < boss.x + boss.width &&
-                    mario.x + mario.width > boss.x &&
-                    mario.y < boss.y + boss.height &&
-                    mario.y + mario.height > boss.y
+                    player.x < obstacles[i].x + obstacles[i].width - 4 &&
+                    player.x + player.width > obstacles[i].x + 4 &&
+                    player.y < obstacles[i].y + obstacles[i].height - 4 &&
+                    player.y + player.height > obstacles[i].y + 4
                 ) {
-                    lives--;
-                    mario.x += (mario.x < boss.x) ? -45 : 45;
-                    if (lives <= 0) {
-                        gameOver = true;
+                    obstacles.splice(i, 1);
+                    gameState.lives--;
+                    updateUI();
+                    if (gameState.lives <= 0) {
+                        triggerGameOver("Menabrak Kendaraan Lain!");
                     }
+                    break;
+                }
+
+                if (obstacles[i].y > canvas.height) {
+                    obstacles.splice(i, 1);
                 }
             }
-
-            enemies.forEach(enemy => {
-                if (!enemy.alive) return;
-                enemy.x += enemy.speed * enemy.direction;
-                if (enemy.x < enemy.minX || enemy.x > enemy.maxX) {
-                    enemy.direction *= -1;
-                }
-
-                if (
-                    mario.x < enemy.x + enemy.width &&
-                    mario.x + mario.width > enemy.x &&
-                    mario.y < enemy.y + enemy.height &&
-                    mario.y + mario.height > enemy.y
-                ) {
-                    if (mario.vy > 0 && mario.y + mario.height - mario.vy <= enemy.y + 12) {
-                        enemy.alive = false;
-                        mario.vy = -10;
-                        score += 150;
-                    } else {
-                        lives--;
-                        if (lives <= 0) {
-                            gameOver = true;
-                        } else {
-                            resetPosition();
-                        }
-                    }
-                }
-            });
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.save();
-            ctx.translate(-cameraX, 0);
+            ctx.fillStyle = "#090d16";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
-            for (let i = 100; i < worldWidth; i += 200) {
-                ctx.fillRect(i, 50, 3, 3);
-                ctx.fillRect(i + 90, 120, 2, 2);
-            }
+            ctx.fillStyle = "#1e293b";
+            ctx.fillRect(40, 0, 200, canvas.height);
 
-            ctx.fillStyle = "#0f172a";
-            ctx.fillRect(0, 310, worldWidth, 90);
+            ctx.strokeStyle = "#38bdf8";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(40, 0); ctx.lineTo(40, canvas.height);
+            ctx.moveTo(240, 0); ctx.lineTo(240, canvas.height);
+            ctx.stroke();
+
+            ctx.strokeStyle = "#fbbf24";
+            ctx.lineWidth = 3;
+            ctx.setLineDash([20, 20]);
+            ctx.lineDashOffset = -roadOffset;
             
-            ctx.strokeStyle = "#00ffcc";
-            ctx.lineWidth = 4;
-            ctx.shadowColor = "#00ffcc";
-            ctx.shadowBlur = 15;
             ctx.beginPath();
-            ctx.moveTo(0, 310);
-            ctx.lineTo(worldWidth, 310);
+            ctx.moveTo(106, 0); ctx.lineTo(106, canvas.height);
+            ctx.moveTo(174, 0); ctx.lineTo(174, canvas.height);
             ctx.stroke();
-            ctx.shadowBlur = 0;
+            ctx.setLineDash([]);
 
-            spikes.forEach(s => {
-                ctx.fillStyle = "#ef4444";
-                ctx.shadowColor = "#ef4444";
-                ctx.shadowBlur = 12;
-                ctx.beginPath();
-                let spikeCount = 4;
-                let w = s.width / spikeCount;
-                for (let i = 0; i < spikeCount; i++) {
-                    ctx.moveTo(s.x + (i * w), s.y + s.height);
-                    ctx.lineTo(s.x + (i * w) + (w / 2), s.y);
-                    ctx.lineTo(s.x + ((i + 1) * w), s.y + s.height);
-                }
-                ctx.fill();
-                ctx.shadowBlur = 0;
+            sceneryObjects.forEach(item => drawScenery(item));
+
+            obstacles.forEach(obs => {
+                drawCar(obs.x, obs.y, obs.width, obs.height, obs.color, false);
             });
 
-            platforms.forEach(p => {
-                if (p.type === 'pipe') {
-                    ctx.fillStyle = "#1e1b4b";
-                    ctx.fillRect(p.x, p.y, p.width, p.height);
-                    ctx.strokeStyle = "#8b5cf6";
-                    ctx.lineWidth = 3;
-                    ctx.shadowColor = "#8b5cf6";
-                    ctx.shadowBlur = 10;
-                    ctx.strokeRect(p.x, p.y, p.width, p.height);
-                    ctx.fillRect(p.x - 4, p.y, p.width + 8, 16);
-                    ctx.strokeRect(p.x - 4, p.y, p.width + 8, 16);
-                    ctx.shadowBlur = 0;
-                } else {
-                    ctx.fillStyle = "#111827";
-                    ctx.fillRect(p.x, p.y, p.width, p.height);
-                    ctx.strokeStyle = "#38bdf8";
-                    ctx.lineWidth = 3;
-                    ctx.shadowColor = "#38bdf8";
-                    ctx.shadowBlur = 10;
-                    ctx.strokeRect(p.x, p.y, p.width, p.height);
-                    ctx.shadowBlur = 0;
-                }
-            });
-
-            coinList.forEach(c => {
-                if (!c.collected) {
-                    ctx.fillStyle = "#facc15";
-                    ctx.shadowColor = "#facc15";
-                    ctx.shadowBlur = 12;
-                    ctx.beginPath();
-                    ctx.arc(c.x + 10, c.y + 10, 8, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                }
-            });
-
-            if (!swordItem.collected) {
-                ctx.strokeStyle = "#38bdf8";
-                ctx.lineWidth = 3;
-                ctx.shadowColor = "#38bdf8";
-                ctx.shadowBlur = 12;
-                ctx.beginPath();
-                ctx.moveTo(swordItem.x + 5, swordItem.y + 15);
-                ctx.lineTo(swordItem.x + 20, swordItem.y);
-                ctx.moveTo(swordItem.x + 2, swordItem.y + 12);
-                ctx.lineTo(swordItem.x + 8, swordItem.y + 18);
-                ctx.stroke();
-                ctx.shadowBlur = 0;
-            }
-
-            // Boss Render
-            ctx.strokeStyle = "#ef4444";
-            ctx.lineWidth = 3.5;
-            ctx.lineCap = "round";
-            ctx.shadowColor = "#ef4444";
-            ctx.shadowBlur = 15;
-
-            ctx.beginPath();
-            ctx.arc(boss.x + 15, boss.y + 10, 8, 0, Math.PI * 2);
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(boss.x + 15, boss.y + 18);
-            ctx.lineTo(boss.x + 15 + (bossDirection * 3), boss.y + 35);
-            ctx.stroke();
-
-            let bossSwing = Math.sin(boss.animFrame) * 12;
-
-            ctx.beginPath();
-            ctx.moveTo(boss.x + 15, boss.y + 22);
-            ctx.lineTo(boss.x + 15 - (bossDirection * 15), boss.y + 30);
-            ctx.moveTo(boss.x + 15, boss.y + 22);
-            ctx.lineTo(boss.x + 15 + (bossDirection * 20), boss.y + 25);
-            ctx.stroke();
-
-            ctx.strokeStyle = "#ff0055";
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            if (bossAttacking) {
-                ctx.moveTo(boss.x + 15, boss.y + 25);
-                ctx.lineTo(boss.x + 15 + (bossDirection * 40), boss.y + 25);
-            } else {
-                ctx.moveTo(boss.x + 15 + (bossDirection * 15), boss.y + 25);
-                ctx.lineTo(boss.x + 15 + (bossDirection * 32), boss.y + 12);
-            }
-            ctx.stroke();
-
-            ctx.strokeStyle = "#ef4444";
-            ctx.lineWidth = 3.5;
-            ctx.beginPath();
-            ctx.moveTo(boss.x + 15, boss.y + 35);
-            ctx.lineTo(boss.x + 8 - bossSwing, boss.y + 50);
-            ctx.moveTo(boss.x + 15, boss.y + 35);
-            ctx.lineTo(boss.x + 22 + bossSwing, boss.y + 50);
-            ctx.stroke();
-
-            ctx.shadowBlur = 0;
-
-            ctx.fillStyle = "#ef4444";
-            ctx.font = "bold 12px 'Courier New'";
-            ctx.fillText("BOSS HP: " + "❤️ ".repeat(bossLives), boss.x - 30, boss.y - 12);
-
-            enemies.forEach(enemy => {
-                if (enemy.alive) {
-                    ctx.fillStyle = "#dc2626";
-                    ctx.shadowColor = "#ef4444";
-                    ctx.shadowBlur = 12;
-                    ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-                    ctx.shadowBlur = 0;
-
-                    ctx.fillStyle = "#fff";
-                    ctx.fillRect(enemy.x + 6, enemy.y + 8, 6, 6);
-                    ctx.fillRect(enemy.x + 20, enemy.y + 8, 6, 6);
-                }
-            });
-
-            // Player Render
-            ctx.strokeStyle = isDashing ? "#00ffcc" : "#ffffff";
-            ctx.lineWidth = 3.5;
-            ctx.lineCap = "round";
-            ctx.shadowColor = isDashing ? "#00ffcc" : "#ffffff";
-            ctx.shadowBlur = isDashing ? 20 : 12;
-
-            ctx.beginPath();
-            ctx.arc(mario.x + 15, mario.y + 10, 8, 0, Math.PI * 2);
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(mario.x + 15, mario.y + 18);
-            ctx.lineTo(mario.x + 15 + (playerFacing * 3), mario.y + 35);
-            ctx.stroke();
-
-            let swing = Math.sin(mario.animFrame) * 10;
-
-            ctx.beginPath();
-            ctx.moveTo(mario.x + 15, mario.y + 22);
-            ctx.lineTo(mario.x + 5 + swing, mario.y + 30);
-            ctx.moveTo(mario.x + 15, mario.y + 22);
-            ctx.lineTo(mario.x + 25 - swing, mario.y + 30);
-            ctx.stroke();
-
-            if (hasSword) {
-                ctx.strokeStyle = "#38bdf8";
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                if (playerAttacking) {
-                    ctx.moveTo(mario.x + 15, mario.y + 25);
-                    ctx.lineTo(mario.x + (playerFacing === 1 ? 45 : -15), mario.y + 25);
-                } else {
-                    ctx.moveTo(mario.x + 20, mario.y + 28);
-                    ctx.lineTo(mario.x + (playerFacing === 1 ? 35 : -5), mario.y + 15);
-                }
-                ctx.stroke();
-                ctx.strokeStyle = isDashing ? "#00ffcc" : "#ffffff";
-                ctx.lineWidth = 3.5;
-            }
-
-            ctx.beginPath();
-            ctx.moveTo(mario.x + 15, mario.y + 35);
-            ctx.lineTo(mario.x + 6 - swing, mario.y + 50);
-            ctx.moveTo(mario.x + 15, mario.y + 35);
-            ctx.lineTo(mario.x + 24 + swing, mario.y + 50);
-            ctx.stroke();
-
-            ctx.shadowBlur = 0;
-            ctx.restore();
-
-            // HUD UI Scoreboard
-            ctx.fillStyle = "rgba(17, 24, 39, 0.9)";
-            ctx.fillRect(15, 15, 430, 42);
-            ctx.strokeStyle = "#00ffcc";
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(15, 15, 430, 42);
-
-            ctx.fillStyle = "#ffffff";
-            ctx.font = "bold 13px 'Courier New'";
-            ctx.fillText("SCORE: " + score, 25, 41);
-            ctx.fillText("COINS: " + coins, 135, 41);
-            ctx.fillText("LIVES: " + "❤️ ".repeat(lives), 235, 41);
-            ctx.fillStyle = dashCooldown === 0 ? "#00ffcc" : "#94a3b8";
-            ctx.fillText(dashCooldown === 0 ? "DASH [READY]" : "DASH [CD]", 350, 41);
-
-            if (gameOver) {
-                ctx.fillStyle = "rgba(5, 5, 10, 0.9)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#ef4444";
-                ctx.shadowColor = "#ef4444";
-                ctx.shadowBlur = 15;
-                ctx.font = "bold 35px 'Courier New'";
-                ctx.fillText("DIKALAHKAN BOSS", 210, 180);
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = "#94a3b8";
-                ctx.font = "14px 'Courier New'";
-                ctx.fillText("Sentuh Tombol untuk Ulangi", 290, 230);
-            }
-
-            if (gameWin) {
-                ctx.fillStyle = "rgba(5, 5, 10, 0.9)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#00ffcc";
-                ctx.shadowColor = "#00ffcc";
-                ctx.shadowBlur = 15;
-                ctx.font = "bold 35px 'Courier New'";
-                ctx.fillText("VICTORY! BOSS DIKALAHKAN", 140, 160);
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = "#ffffff";
-                ctx.font = "16px 'Courier New'";
-                ctx.fillText("Duel Pedang Berhasil Dimenangkan!", 220, 200);
-                ctx.fillStyle = "#94a3b8";
-                ctx.font = "14px 'Courier New'";
-                ctx.fillText("Sentuh Tombol untuk Main Lagi", 270, 240);
-            }
+            drawCar(player.x, player.y, player.width, player.height, player.color, true);
         }
 
-        function loop() {
+        function gameLoop() {
             update();
             draw();
-            requestAnimationFrame(loop);
+            requestAnimationFrame(gameLoop);
         }
 
-        loop();
+        function openGasStation() {
+            gameState.isDriving = false;
+            el.quizModal.classList.remove("hidden");
+            loadRandomQuestion();
+            startQuizTimer();
+        }
+
+        function loadRandomQuestion() {
+            const randomIndex = Math.floor(Math.random() * questionBank.length);
+            currentQuiz = questionBank[randomIndex];
+
+            el.quizQuestion.innerHTML = currentQuiz.q;
+            el.quizOptions.innerHTML = "";
+
+            currentQuiz.options.forEach((option, index) => {
+                const btn = document.createElement("button");
+                btn.className = "w-full text-left bg-slate-900 hover:bg-slate-800 border border-slate-700 p-2.5 rounded-xl font-bold text-xs transition text-slate-100 shadow";
+                btn.innerText = option;
+                btn.onclick = () => answerQuiz(index);
+                el.quizOptions.appendChild(btn);
+            });
+        }
+
+        function changeQuestion() {
+            clearInterval(quizTimer);
+            loadRandomQuestion();
+            startQuizTimer();
+        }
+
+        function startQuizTimer() {
+            clearInterval(quizTimer);
+            timeLeft = 10;
+            el.timeLeft.innerText = timeLeft;
+
+            quizTimer = setInterval(() => {
+                timeLeft--;
+                el.timeLeft.innerText = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(quizTimer);
+                    handleWrongAnswer("Waktu Habis!");
+                }
+            }, 1000);
+        }
+
+        function answerQuiz(selectedIndex) {
+            clearInterval(quizTimer);
+
+            if (selectedIndex === currentQuiz.answer) {
+                gameState.fuel = 100;
+                if (gameState.lives < 3) gameState.lives++;
+                gameState.score += 40;
+                checkLevelProgression();
+                closeGasModal();
+            } else {
+                handleWrongAnswer("Jawaban Salah!");
+            }
+        }
+
+        function handleWrongAnswer(reason) {
+            gameState.lives--;
+            updateUI();
+
+            if (gameState.lives <= 0) {
+                el.quizModal.classList.add("hidden");
+                triggerGameOver("Nyawa Habis Gagal Jawab Soal!");
+            } else {
+                alert(reason + " Nyawa tersisa: " + gameState.lives + ". Soal diganti otomatis.");
+                loadRandomQuestion();
+                startQuizTimer();
+            }
+        }
+
+        function closeGasModal() {
+            el.quizModal.classList.add("hidden");
+            gameState.isDriving = true;
+            updateUI();
+        }
+
+        function triggerWin() {
+            gameState.isDriving = false;
+            clearInterval(fuelTimer);
+            clearInterval(quizTimer);
+            if (obstacleInterval) clearInterval(obstacleInterval);
+            el.winScreen.classList.remove("hidden");
+        }
+
+        function triggerGameOver(reason) {
+            gameState.isDriving = false;
+            clearInterval(fuelTimer);
+            clearInterval(quizTimer);
+            if (obstacleInterval) clearInterval(obstacleInterval);
+            el.resultScreen.classList.remove("hidden");
+            el.resultMessage.innerText = reason + " Skor akhir: " + gameState.score;
+        }
+
+        function restartGame() {
+            currentLevelIdx = 0;
+            gameState = {
+                score: 0,
+                lives: 3,
+                fuel: 100,
+                isDriving: true
+            };
+            obstacles = [];
+            sceneryObjects = [];
+            player.laneIndex = 1;
+            player.x = lanes[1];
+            el.winScreen.classList.add("hidden");
+            el.resultScreen.classList.add("hidden");
+            updateUI();
+            startEngineLoop();
+        }
+
+        updateUI();
+        startEngineLoop();
+        gameLoop();
     </script>
 </body>
 </html>
